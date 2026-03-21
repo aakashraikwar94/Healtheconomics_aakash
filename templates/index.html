@@ -1,146 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ASD Parent Health Guide — Sexual & Reproductive Health Chatbot</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ASD Parent Health Guide</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --primary: #4a6fa5;
-      --primary-dark: #3a5a8a;
-      --accent: #6bb3a8;
-      --bg: #f5f7fa;
-      --surface: #ffffff;
-      --text: #2d3748;
-      --text-muted: #718096;
-      --border: #e2e8f0;
-      --user-bubble: #4a6fa5;
-      --bot-bubble: #f0f4f8;
-      --shadow: 0 2px 8px rgba(0,0,0,0.08);
-      --radius: 16px;
+      --primary: #4a6fa5; --primary-dark: #3a5a8a; --accent: #6bb3a8;
+      --bg: #f5f7fa; --surface: #fff; --sidebar-bg: #1e2a3a;
+      --sidebar-text: #cbd5e0; --sidebar-hover: #2d3d52; --sidebar-active: #3a5a8a;
+      --text: #2d3748; --text-muted: #718096; --border: #e2e8f0;
+      --user-bubble: #4a6fa5; --bot-bubble: #f0f4f8;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08); --radius: 16px;
+      --sidebar-w: 260px;
     }
 
+    html, body { height: 100%; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100dvh;
-      display: flex;
-      flex-direction: column;
+      background: var(--bg); color: var(--text);
+      display: flex; height: 100dvh; overflow: hidden;
     }
 
-    /* ── Header ── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: var(--shadow);
-      flex-shrink: 0;
-      z-index: 10;
+    /* ── Sidebar ── */
+    #sidebar {
+      width: var(--sidebar-w); background: var(--sidebar-bg);
+      display: flex; flex-direction: column; flex-shrink: 0;
+      transition: transform 0.25s ease; z-index: 100;
     }
-    .header-icon {
-      width: 44px; height: 44px;
+    .sidebar-header {
+      padding: 18px 16px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    }
+    .sidebar-logo .icon {
+      width: 36px; height: 36px; border-radius: 10px;
       background: linear-gradient(135deg, var(--primary), var(--accent));
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
     }
-    .header-text h1 { font-size: 1rem; font-weight: 700; color: var(--text); }
-    .header-text p  { font-size: 0.78rem; color: var(--text-muted); margin-top: 1px; }
-    .status-dot {
-      width: 8px; height: 8px;
-      background: #48bb78; border-radius: 50%;
-      margin-left: auto; flex-shrink: 0;
+    .sidebar-logo span {
+      font-size: 0.88rem; font-weight: 700; color: #fff; line-height: 1.2;
     }
-    .status-label { font-size: 0.75rem; color: var(--text-muted); }
+    #new-chat-btn {
+      width: 100%; background: var(--primary); color: #fff; border: none;
+      border-radius: 8px; padding: 9px 14px; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px;
+      transition: background 0.15s;
+    }
+    #new-chat-btn:hover { background: var(--primary-dark); }
 
-    /* ── Disclaimer banner ── */
+    .sidebar-section-label {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #718096; padding: 14px 16px 6px;
+    }
+    #conversation-list {
+      flex: 1; overflow-y: auto; padding: 0 8px 8px;
+    }
+    #conversation-list::-webkit-scrollbar { width: 4px; }
+    #conversation-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .conv-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 10px; border-radius: 8px; cursor: pointer;
+      color: var(--sidebar-text); font-size: 0.83rem;
+      transition: background 0.12s; margin-bottom: 2px; gap: 6px;
+    }
+    .conv-item:hover { background: var(--sidebar-hover); }
+    .conv-item.active { background: var(--sidebar-active); color: #fff; }
+    .conv-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .conv-delete {
+      background: none; border: none; color: #718096; cursor: pointer;
+      font-size: 14px; padding: 2px 4px; border-radius: 4px;
+      opacity: 0; transition: opacity 0.15s, color 0.15s; flex-shrink: 0;
+    }
+    .conv-item:hover .conv-delete { opacity: 1; }
+    .conv-delete:hover { color: #fc8181; }
+    #conv-empty {
+      padding: 16px; text-align: center;
+      color: #4a5568; font-size: 0.8rem; line-height: 1.5;
+    }
+
+    .sidebar-footer {
+      padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
+    }
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .user-avatar {
+      width: 30px; height: 30px; border-radius: 8px; background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: #fff; font-weight: 700; flex-shrink: 0;
+    }
+    .user-name { font-size: 0.83rem; color: var(--sidebar-text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .logout-btn {
+      background: none; border: none; color: #718096; cursor: pointer;
+      font-size: 18px; padding: 2px 4px; border-radius: 4px;
+      transition: color 0.15s; flex-shrink: 0;
+    }
+    .logout-btn:hover { color: #fc8181; }
+
+    /* Mobile sidebar toggle */
+    #sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 99;
+    }
+    #menu-btn {
+      display: none; background: none; border: none;
+      font-size: 22px; cursor: pointer; color: var(--text); padding: 4px;
+    }
+
+    /* ── Main area ── */
+    #main {
+      flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0;
+    }
+
+    /* Header */
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 12px 20px; display: flex; align-items: center; gap: 10px;
+      box-shadow: var(--shadow); flex-shrink: 0; z-index: 10;
+    }
+    .header-title { font-size: 0.95rem; font-weight: 700; }
+    .header-sub   { font-size: 0.75rem; color: var(--text-muted); }
+
+    /* Disclaimer */
     .disclaimer {
-      background: #fffbeb;
-      border-bottom: 1px solid #fef08a;
-      padding: 8px 20px;
-      font-size: 0.75rem;
-      color: #92400e;
-      flex-shrink: 0;
+      background: #fffbeb; border-bottom: 1px solid #fef08a;
+      padding: 7px 20px; font-size: 0.74rem; color: #92400e; flex-shrink: 0;
     }
-    .disclaimer strong { font-weight: 600; }
 
-    /* ── Chat area ── */
+    /* Chat messages */
     #chat-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      scroll-behavior: smooth;
+      flex: 1; overflow-y: auto; padding: 20px;
+      display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth;
     }
 
-    /* ── Messages ── */
-    .message {
-      display: flex;
-      gap: 10px;
-      max-width: 820px;
-      width: 100%;
-      animation: fadeIn 0.25s ease;
-    }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-    .message.user  { align-self: flex-end; flex-direction: row-reverse; }
-    .message.bot   { align-self: flex-start; }
-
+    .message { display: flex; gap: 10px; max-width: 820px; width: 100%; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    .message.user { align-self: flex-end; flex-direction: row-reverse; }
+    .message.bot  { align-self: flex-start; }
     .avatar {
-      width: 34px; height: 34px; border-radius: 10px;
+      width: 32px; height: 32px; border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex-shrink: 0; align-self: flex-end;
+      font-size: 15px; flex-shrink: 0; align-self: flex-end;
     }
     .message.user .avatar { background: var(--primary); }
     .message.bot  .avatar { background: linear-gradient(135deg, var(--primary), var(--accent)); }
-
     .bubble {
-      padding: 12px 16px;
-      border-radius: var(--radius);
-      line-height: 1.65;
-      font-size: 0.92rem;
-      max-width: calc(100% - 50px);
-      word-break: break-word;
+      padding: 11px 15px; border-radius: var(--radius);
+      line-height: 1.65; font-size: 0.91rem;
+      max-width: calc(100% - 46px); word-break: break-word;
     }
-    .message.user .bubble {
-      background: var(--user-bubble);
-      color: #fff;
-      border-bottom-right-radius: 4px;
-    }
-    .message.bot .bubble {
-      background: var(--bot-bubble);
-      color: var(--text);
-      border-bottom-left-radius: 4px;
-      box-shadow: var(--shadow);
-    }
-
-    /* Markdown-style rendering inside bot bubbles */
+    .message.user .bubble { background: var(--user-bubble); color: #fff; border-bottom-right-radius: 4px; }
+    .message.bot  .bubble { background: var(--bot-bubble); color: var(--text); border-bottom-left-radius: 4px; box-shadow: var(--shadow); }
     .bubble p         { margin-bottom: 0.6em; }
     .bubble p:last-child { margin-bottom: 0; }
     .bubble strong    { font-weight: 600; }
     .bubble em        { font-style: italic; }
     .bubble ul, .bubble ol { padding-left: 1.3em; margin-bottom: 0.6em; }
     .bubble li        { margin-bottom: 0.25em; }
-    .bubble h3        { font-size: 0.95rem; font-weight: 700; margin: 0.7em 0 0.3em; }
-    .bubble code      { background: #e8edf2; padding: 1px 5px; border-radius: 4px; font-size: 0.85em; }
+    .bubble h3, .bubble h4 { font-size: 0.94rem; font-weight: 700; margin: 0.6em 0 0.3em; }
+    .bubble code      { background: #e8edf2; padding: 1px 5px; border-radius: 4px; font-size: 0.84em; }
     .bubble hr        { border: none; border-top: 1px solid var(--border); margin: 0.8em 0; }
-
-    /* Error bubble */
     .bubble.error     { background: #fff5f5; color: #c53030; border: 1px solid #fc8181; }
 
     /* Typing indicator */
     .typing-indicator {
-      display: flex; gap: 5px; align-items: center; padding: 12px 16px;
-      background: var(--bot-bubble); border-radius: var(--radius);
-      border-bottom-left-radius: 4px; box-shadow: var(--shadow);
+      display: flex; gap: 5px; align-items: center;
+      padding: 11px 15px; background: var(--bot-bubble);
+      border-radius: var(--radius); border-bottom-left-radius: 4px; box-shadow: var(--shadow);
     }
     .typing-indicator span {
       width: 7px; height: 7px; background: var(--text-muted);
@@ -148,219 +177,270 @@
     }
     .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
     .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce {
-      0%, 60%, 100% { transform: translateY(0); }
-      30%           { transform: translateY(-6px); }
-    }
+    @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
 
-    /* ── Suggested topics ── */
+    /* Suggestions */
     #suggestions {
-      padding: 0 20px 12px;
-      display: flex; flex-wrap: wrap; gap: 8px;
-      flex-shrink: 0;
+      padding: 0 20px 10px;
+      display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0;
     }
     .suggestion-btn {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 0.8rem;
-      color: var(--primary);
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 13px; font-size: 0.79rem;
+      color: var(--primary); cursor: pointer; transition: all 0.15s; white-space: nowrap;
     }
     .suggestion-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-    /* ── Input area ── */
+    /* Input area */
     #input-area {
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 14px 20px;
-      display: flex; align-items: flex-end; gap: 10px;
-      flex-shrink: 0;
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 12px 20px; display: flex; align-items: flex-end; gap: 10px; flex-shrink: 0;
     }
     #message-input {
-      flex: 1;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 0.92rem;
-      font-family: inherit;
-      color: var(--text);
-      resize: none;
-      max-height: 120px;
-      overflow-y: auto;
-      transition: border-color 0.15s;
-      line-height: 1.5;
+      flex: 1; border: 1.5px solid var(--border); border-radius: 12px;
+      padding: 10px 14px; font-size: 0.91rem; font-family: inherit;
+      color: var(--text); resize: none; max-height: 120px; overflow-y: auto;
+      transition: border-color 0.15s; line-height: 1.5;
     }
     #message-input:focus { outline: none; border-color: var(--primary); }
     #message-input::placeholder { color: var(--text-muted); }
-
     #send-btn {
-      width: 42px; height: 42px;
-      background: var(--primary);
-      border: none; border-radius: 10px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+      width: 40px; height: 40px; background: var(--primary);
+      border: none; border-radius: 10px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       transition: background 0.15s, transform 0.1s;
     }
     #send-btn:hover:not(:disabled) { background: var(--primary-dark); }
-    #send-btn:active:not(:disabled) { transform: scale(0.94); }
+    #send-btn:active:not(:disabled) { transform: scale(0.93); }
     #send-btn:disabled { background: var(--border); cursor: not-allowed; }
-    #send-btn svg { fill: #fff; width: 18px; height: 18px; }
+    #send-btn svg { fill: #fff; width: 17px; height: 17px; }
 
-    /* ── New chat button ── */
-    #new-chat-btn {
-      background: none; border: none;
-      color: var(--text-muted); cursor: pointer;
-      font-size: 0.78rem; padding: 4px 8px; border-radius: 6px;
-      transition: color 0.15s;
-      white-space: nowrap;
-    }
-    #new-chat-btn:hover { color: var(--primary); }
-
-    /* ── Footer note ── */
     .footer-note {
-      text-align: center; font-size: 0.72rem; color: var(--text-muted);
-      padding: 4px 20px 10px;
-      flex-shrink: 0;
+      text-align: center; font-size: 0.71rem; color: var(--text-muted);
+      padding: 4px 20px 10px; flex-shrink: 0;
     }
 
-    /* Responsive */
-    @media (max-width: 600px) {
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      #sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+      #sidebar-overlay.open { display: block; }
+      #menu-btn { display: block; }
       #chat-container { padding: 14px 12px; }
       #input-area     { padding: 10px 12px; }
-      #suggestions    { padding: 0 12px 10px; }
-      .message        { max-width: 100%; }
+      #suggestions    { padding: 0 12px 8px; }
     }
   </style>
 </head>
 <body>
 
-<!-- Header -->
-<header>
-  <div class="header-icon">🧩</div>
-  <div class="header-text">
-    <h1>ASD Parent Health Guide</h1>
-    <p>Sexual &amp; Reproductive Health Support for Parents of Autistic Individuals</p>
+<!-- Sidebar overlay (mobile) -->
+<div id="sidebar-overlay"></div>
+
+<!-- Sidebar -->
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <div class="icon">🧩</div>
+      <span>ASD Parent<br/>Health Guide</span>
+    </div>
+    <button id="new-chat-btn">＋ &nbsp;New Conversation</button>
   </div>
-  <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
-    <div class="status-dot"></div>
-    <span class="status-label">Online</span>
-    <button id="new-chat-btn" title="Start a new conversation">↺ New chat</button>
+
+  <div class="sidebar-section-label">Recent Conversations</div>
+  <div id="conversation-list">
+    <div id="conv-empty">No conversations yet.<br/>Start a new one above.</div>
   </div>
-</header>
 
-<!-- Disclaimer -->
-<div class="disclaimer">
-  <strong>Note:</strong> This chatbot provides health education information only — it is not a substitute for medical, psychological, or clinical advice. For safeguarding concerns, contact your local child/adult protection services immediately.
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="user-avatar">{{ username[0]|upper }}</div>
+      <span class="user-name">{{ username }}</span>
+      <a href="/logout" class="logout-btn" title="Sign out">⏻</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Main -->
+<div id="main">
+  <header>
+    <button id="menu-btn" aria-label="Open menu">☰</button>
+    <div>
+      <div class="header-title">Sexual &amp; Reproductive Health Chatbot</div>
+      <div class="header-sub">For parents &amp; carers of autistic teenagers and adults</div>
+    </div>
+  </header>
+
+  <div class="disclaimer">
+    <strong>Note:</strong> Health education only — not a substitute for medical or clinical advice. For safeguarding concerns contact your local protection services immediately.
+  </div>
+
+  <div id="chat-container"></div>
+
+  <div id="suggestions">
+    <button class="suggestion-btn" data-msg="How do I explain puberty to my autistic teenager?">Explaining puberty</button>
+    <button class="suggestion-btn" data-msg="How can I teach my autistic child about consent and boundaries?">Consent &amp; boundaries</button>
+    <button class="suggestion-btn" data-msg="My autistic teenager is masturbating in public. How do I address this?">Inappropriate behaviours</button>
+    <button class="suggestion-btn" data-msg="What contraception options are suitable for my autistic young adult daughter?">Contraception options</button>
+    <button class="suggestion-btn" data-msg="My autistic son is in a relationship. How can I support him?">Relationships support</button>
+    <button class="suggestion-btn" data-msg="Are there visual tools or social stories for teaching sex education to autistic people?">Visual teaching tools</button>
+    <button class="suggestion-btn" data-msg="My autistic child identifies as LGBTQ+. How can I support them?">LGBTQ+ &amp; autism</button>
+  </div>
+
+  <div id="input-area">
+    <textarea id="message-input" placeholder="Ask about sexual &amp; reproductive health for your autistic child…"
+              rows="1" aria-label="Your message"></textarea>
+    <button id="send-btn" disabled aria-label="Send message">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+  <p class="footer-note">Powered by Claude AI · Speak to your GP or an autism specialist for clinical advice.</p>
 </div>
-
-<!-- Chat messages -->
-<div id="chat-container"></div>
-
-<!-- Suggested topics (shown when chat is empty) -->
-<div id="suggestions">
-  <button class="suggestion-btn" data-msg="How do I explain puberty to my autistic teenager?">Explaining puberty</button>
-  <button class="suggestion-btn" data-msg="How can I teach my autistic child about consent and boundaries?">Consent &amp; boundaries</button>
-  <button class="suggestion-btn" data-msg="My autistic teenager is masturbating in public. How do I address this?">Inappropriate behaviours</button>
-  <button class="suggestion-btn" data-msg="What contraception options are suitable for my autistic young adult daughter?">Contraception options</button>
-  <button class="suggestion-btn" data-msg="My autistic son is in a relationship. How can I support him?">Relationships support</button>
-  <button class="suggestion-btn" data-msg="Are there visual tools or social stories for teaching sex education to autistic people?">Visual teaching tools</button>
-  <button class="suggestion-btn" data-msg="My autistic child identifies as LGBTQ+. How can I support them?">LGBTQ+ &amp; autism</button>
-</div>
-
-<!-- Input area -->
-<div id="input-area">
-  <textarea
-    id="message-input"
-    placeholder="Ask about sexual &amp; reproductive health for your autistic child..."
-    rows="1"
-    aria-label="Your message"
-  ></textarea>
-  <button id="send-btn" aria-label="Send message" disabled>
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-    </svg>
-  </button>
-</div>
-<p class="footer-note">Powered by Claude AI · For professional support, speak to your GP, paediatrician, or an autism specialist.</p>
 
 <script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let currentConvId  = null;
+  let isStreaming    = false;
+  let conversations  = []; // local cache
+
   const chatContainer = document.getElementById('chat-container');
   const input         = document.getElementById('message-input');
   const sendBtn       = document.getElementById('send-btn');
   const suggestions   = document.getElementById('suggestions');
   const newChatBtn    = document.getElementById('new-chat-btn');
+  const convList      = document.getElementById('conversation-list');
+  const convEmpty     = document.getElementById('conv-empty');
+  const sidebar       = document.getElementById('sidebar');
+  const overlay       = document.getElementById('sidebar-overlay');
+  const menuBtn       = document.getElementById('menu-btn');
 
-  let conversationHistory = [];
-  let isStreaming = false;
+  // ── Sidebar toggle (mobile) ────────────────────────────────────────────────
+  menuBtn.addEventListener('click', () => {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
 
   // ── Utilities ──────────────────────────────────────────────────────────────
-
-  function escapeHtml(str) {
-    return str
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
   }
-
-  /** Very lightweight markdown → HTML (bold, italic, headers, lists, hr, line breaks) */
   function renderMarkdown(text) {
-    let html = escapeHtml(text);
-    // Headers h3/h4
-    html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
-    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-    // Bold & italic
-    html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-    // Inline code
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    // HR
-    html = html.replace(/^---$/gm, '<hr/>');
-    // Unordered lists
-    html = html.replace(/^[*\-] (.+)$/gm, '<li>$1</li>');
-    html = html.replace(/(<li>[\s\S]+?<\/li>)(?=\s*(?:[^<]|<li))/g, (m) => '<ul>' + m + '</ul>');
-    // Numbered lists
-    html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-    // Paragraphs (double newlines → <p>)
-    html = html.split(/\n{2,}/).map(para => {
-      para = para.trim();
-      if (!para || para.startsWith('<h') || para.startsWith('<ul') || para.startsWith('<ol') || para.startsWith('<hr')) return para;
-      return '<p>' + para.replace(/\n/g, '<br/>') + '</p>';
+    let h = escapeHtml(text);
+    h = h.replace(/^#### (.+)$/gm,'<h4>$1</h4>');
+    h = h.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+    h = h.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
+    h = h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    h = h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+    h = h.replace(/`([^`]+)`/g,'<code>$1</code>');
+    h = h.replace(/^---$/gm,'<hr/>');
+    h = h.replace(/^[*\-] (.+)$/gm,'<li>$1</li>');
+    h = h.split(/\n{2,}/).map(p => {
+      p = p.trim();
+      if (!p || /^<(h[2-4]|ul|ol|hr|li)/.test(p)) return p;
+      return '<p>' + p.replace(/\n/g,'<br/>') + '</p>';
     }).join('\n');
-    return html;
+    return h;
   }
-
   function scrollToBottom() {
     chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
   }
+  function hideSuggestions() { suggestions.style.display = 'none'; }
+  function showSuggestions()  { suggestions.style.display = 'flex'; }
 
-  function hideSuggestions() {
-    suggestions.style.display = 'none';
+  // ── Conversation list ──────────────────────────────────────────────────────
+  async function loadConversationList() {
+    const res = await fetch('/api/conversations');
+    conversations = await res.json();
+    renderConvList();
   }
 
-  // ── Message rendering ──────────────────────────────────────────────────────
+  function renderConvList() {
+    convList.innerHTML = '';
+    if (!conversations.length) {
+      convList.appendChild(convEmpty);
+      convEmpty.style.display = 'block';
+      return;
+    }
+    conversations.forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'conv-item' + (c.id === currentConvId ? ' active' : '');
+      item.dataset.id = c.id;
+      item.innerHTML = `
+        <span class="conv-title" title="${escapeHtml(c.title)}">${escapeHtml(c.title)}</span>
+        <button class="conv-delete" title="Delete" data-id="${c.id}">🗑</button>
+      `;
+      item.addEventListener('click', (e) => {
+        if (e.target.classList.contains('conv-delete')) return;
+        openConversation(c.id);
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+      });
+      item.querySelector('.conv-delete').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!confirm('Delete this conversation?')) return;
+        await fetch(`/api/conversations/${c.id}`, { method: 'DELETE' });
+        if (currentConvId === c.id) startNewChat();
+        conversations = conversations.filter(x => x.id !== c.id);
+        renderConvList();
+      });
+      convList.appendChild(item);
+    });
+  }
 
+  function setActiveConv(id) {
+    currentConvId = id;
+    convList.querySelectorAll('.conv-item').forEach(el => {
+      el.classList.toggle('active', parseInt(el.dataset.id) === id);
+    });
+  }
+
+  // ── Open a saved conversation ──────────────────────────────────────────────
+  async function openConversation(convId) {
+    const res = await fetch(`/api/conversations/${convId}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    chatContainer.innerHTML = '';
+    hideSuggestions();
+    data.messages.forEach(m => appendMessage(m.role === 'user' ? 'user' : 'bot', m.content));
+    setActiveConv(convId);
+    scrollToBottom();
+  }
+
+  // ── New chat ───────────────────────────────────────────────────────────────
+  function startNewChat() {
+    currentConvId = null;
+    chatContainer.innerHTML = '';
+    showSuggestions();
+    setActiveConv(null);
+    showWelcome();
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+    input.focus();
+  }
+
+  newChatBtn.addEventListener('click', () => {
+    startNewChat();
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+
+  // ── Message rendering ──────────────────────────────────────────────────────
   function appendMessage(role, text, isError = false) {
     hideSuggestions();
     const wrapper = document.createElement('div');
     wrapper.className = `message ${role}`;
-
     const avatar = document.createElement('div');
     avatar.className = 'avatar';
     avatar.textContent = role === 'user' ? '👤' : '🧩';
-
     const bubble = document.createElement('div');
     bubble.className = 'bubble' + (isError ? ' error' : '');
-    if (role === 'bot') {
-      bubble.innerHTML = renderMarkdown(text);
-    } else {
-      bubble.innerHTML = '<p>' + escapeHtml(text) + '</p>';
-    }
-
+    bubble.innerHTML = role === 'bot' ? renderMarkdown(text) : '<p>' + escapeHtml(text) + '</p>';
     wrapper.append(avatar, bubble);
     chatContainer.appendChild(wrapper);
     scrollToBottom();
@@ -369,173 +449,103 @@
 
   function appendTypingIndicator() {
     const wrapper = document.createElement('div');
-    wrapper.className = 'message bot';
-    wrapper.id = 'typing-wrapper';
-
+    wrapper.className = 'message bot'; wrapper.id = 'typing-wrapper';
     const avatar = document.createElement('div');
-    avatar.className = 'avatar';
-    avatar.textContent = '🧩';
-
-    const indicator = document.createElement('div');
-    indicator.className = 'typing-indicator';
-    indicator.innerHTML = '<span></span><span></span><span></span>';
-
-    wrapper.append(avatar, indicator);
+    avatar.className = 'avatar'; avatar.textContent = '🧩';
+    const ind = document.createElement('div'); ind.className = 'typing-indicator';
+    ind.innerHTML = '<span></span><span></span><span></span>';
+    wrapper.append(avatar, ind);
     chatContainer.appendChild(wrapper);
     scrollToBottom();
-    return wrapper;
-  }
-
-  function removeTypingIndicator() {
-    document.getElementById('typing-wrapper')?.remove();
   }
 
   // ── Send message ───────────────────────────────────────────────────────────
-
   async function sendMessage(text) {
     if (isStreaming || !text) return;
     isStreaming = true;
-    sendBtn.disabled = true;
-    input.disabled = true;
-
+    sendBtn.disabled = true; input.disabled = true;
     appendMessage('user', text);
-    const typingEl = appendTypingIndicator();
+    appendTypingIndicator();
 
     try {
-      const response = await fetch('/chat', {
+      const res = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: conversationHistory }),
+        body: JSON.stringify({ message: text, conversation_id: currentConvId }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const reader = response.body.getReader();
+      const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let botText = '';
-      let botBubble = null;
+      let botText = ''; let botBubble = null;
 
-      removeTypingIndicator();
-
-      // Create bot message container
-      const wrapper = document.createElement('div');
-      wrapper.className = 'message bot';
-      const avatar = document.createElement('div');
-      avatar.className = 'avatar';
-      avatar.textContent = '🧩';
-      botBubble = document.createElement('div');
-      botBubble.className = 'bubble';
-      botBubble.innerHTML = '<span class="cursor">▍</span>';
-      wrapper.append(avatar, botBubble);
-      chatContainer.appendChild(wrapper);
+      document.getElementById('typing-wrapper')?.remove();
+      const wrapper = document.createElement('div'); wrapper.className = 'message bot';
+      const avatar  = document.createElement('div'); avatar.className = 'avatar'; avatar.textContent = '🧩';
+      botBubble = document.createElement('div'); botBubble.className = 'bubble';
+      botBubble.innerHTML = '<span>▍</span>';
+      wrapper.append(avatar, botBubble); chatContainer.appendChild(wrapper);
       hideSuggestions();
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
-
+        const lines = decoder.decode(value, { stream: true }).split('\n');
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
-          const jsonStr = line.slice(6).trim();
-          if (!jsonStr) continue;
-
-          let data;
-          try { data = JSON.parse(jsonStr); } catch { continue; }
-
-          if (data.error) {
-            botBubble.innerHTML = '<p>' + escapeHtml(data.error) + '</p>';
-            botBubble.classList.add('error');
-            break;
-          }
-          if (data.text) {
-            botText += data.text;
-            botBubble.innerHTML = renderMarkdown(botText) + '<span class="cursor">▍</span>';
-            scrollToBottom();
-          }
-          if (data.done) {
+          let data; try { data = JSON.parse(line.slice(6).trim()); } catch { continue; }
+          if (data.error) { botBubble.innerHTML = '<p>' + escapeHtml(data.error) + '</p>'; botBubble.classList.add('error'); break; }
+          if (data.text)  { botText += data.text; botBubble.innerHTML = renderMarkdown(botText) + '<span>▍</span>'; scrollToBottom(); }
+          if (data.done)  {
             botBubble.innerHTML = renderMarkdown(data.assistant_message || botText);
-            // Update conversation history
-            conversationHistory.push({ role: 'user', content: text });
-            conversationHistory.push({ role: 'assistant', content: data.assistant_message || botText });
-            // Keep last 20 turns to avoid context bloat
-            if (conversationHistory.length > 40) {
-              conversationHistory = conversationHistory.slice(-40);
+            currentConvId = data.conversation_id;
+            // Update sidebar
+            if (data.is_first) {
+              conversations.unshift({ id: currentConvId, title: data.title });
+            } else {
+              const idx = conversations.findIndex(c => c.id === currentConvId);
+              if (idx > -1) { conversations.unshift(conversations.splice(idx, 1)[0]); }
             }
+            renderConvList();
+            setActiveConv(currentConvId);
           }
         }
       }
-
     } catch (err) {
-      removeTypingIndicator();
-      appendMessage('bot', 'Sorry, something went wrong. Please check your connection and try again.', true);
+      document.getElementById('typing-wrapper')?.remove();
+      appendMessage('bot', 'Something went wrong. Please check your connection and try again.', true);
       console.error(err);
     } finally {
-      isStreaming = false;
+      isStreaming = false; input.disabled = false;
       sendBtn.disabled = input.value.trim() === '';
-      input.disabled = false;
-      input.focus();
-      scrollToBottom();
+      input.focus(); scrollToBottom();
     }
   }
 
   // ── Event listeners ────────────────────────────────────────────────────────
-
   input.addEventListener('input', () => {
-    // Auto-resize textarea
     input.style.height = 'auto';
     input.style.height = Math.min(input.scrollHeight, 120) + 'px';
     sendBtn.disabled = input.value.trim() === '' || isStreaming;
   });
-
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       const msg = input.value.trim();
-      if (msg && !isStreaming) {
-        input.value = '';
-        input.style.height = 'auto';
-        sendBtn.disabled = true;
-        sendMessage(msg);
-      }
+      if (msg && !isStreaming) { input.value = ''; input.style.height = 'auto'; sendBtn.disabled = true; sendMessage(msg); }
     }
   });
-
   sendBtn.addEventListener('click', () => {
     const msg = input.value.trim();
-    if (msg && !isStreaming) {
-      input.value = '';
-      input.style.height = 'auto';
-      sendBtn.disabled = true;
-      sendMessage(msg);
-    }
+    if (msg && !isStreaming) { input.value = ''; input.style.height = 'auto'; sendBtn.disabled = true; sendMessage(msg); }
   });
-
   document.querySelectorAll('.suggestion-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const msg = btn.dataset.msg;
-      if (!isStreaming) sendMessage(msg);
-    });
-  });
-
-  newChatBtn.addEventListener('click', () => {
-    conversationHistory = [];
-    chatContainer.innerHTML = '';
-    suggestions.style.display = 'flex';
-    input.value = '';
-    input.style.height = 'auto';
-    sendBtn.disabled = true;
-    input.focus();
-    // Re-show welcome
-    showWelcome();
+    btn.addEventListener('click', () => { if (!isStreaming) sendMessage(btn.dataset.msg); });
   });
 
   // ── Welcome message ────────────────────────────────────────────────────────
-
   function showWelcome() {
-    const welcomeText = `Welcome! I'm here to support you as a parent or carer of an autistic teenager or adult.
+    appendMessage('bot', `Welcome! I'm here to support you as a parent or carer of an autistic teenager or adult.
 
 **I can help you with:**
 - Understanding sexual development and puberty in autism
@@ -546,12 +556,11 @@
 - LGBTQ+ identities and autism
 - Finding autism-aware professionals and resources
 
-Feel free to ask any question — this is a safe, judgement-free space. What would you like to explore today?`;
-
-    appendMessage('bot', welcomeText);
+Feel free to ask any question — this is a safe, judgement-free space. What would you like to explore today?`);
   }
 
-  // Show welcome on load
+  // ── Init ──────────────────────────────────────────────────────────────────
+  loadConversationList();
   showWelcome();
   input.focus();
 </script>
