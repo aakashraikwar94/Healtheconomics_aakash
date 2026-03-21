@@ -1,0 +1,19 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.DS_Store
+*.log
+
+# SQLite database (contains user data — never commit)
+*.db
+*.sqlite
+*.sqlite3
